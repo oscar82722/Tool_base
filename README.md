@@ -10,7 +10,7 @@
 The project is currently under development, but you can organize your code according to the following directory structure:
 
 ```
-toolbase/
+Toolbase/
 │
 ├── function/
 │ ├── fetch_data.R
