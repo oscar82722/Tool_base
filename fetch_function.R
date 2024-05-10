@@ -68,6 +68,8 @@ test_that("fetch_data() function test", {
     variable = factor(c("ICD9_CODE1", "ICD9_CODE2")),
     value = c("434.01", "585")
   )
+  
   # 比較兩個data table 是否一致
   expect_equal(filtered_data, answer)
+
 })
