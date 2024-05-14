@@ -20,6 +20,7 @@ get_valid_data <- function(dt, Standard_ID_cols, k){
               msg="Error: 'target_ID_cols' must be a list.")
   assert_that(is.numeric(k), msg="Error: 'k' must be a numeric.")
   
+  group_id <- Standard_ID_cols[1]
   # ADD "DATE" col
   date_cols_index <- grep("date", names(dt)[names(dt) %in% Standard_ID_cols], 
                           ignore.case = TRUE)
@@ -27,14 +28,18 @@ get_valid_data <- function(dt, Standard_ID_cols, k){
   dt[, DATE := .SD[[std_id]]]
   
   # Transfer date type
-  years <- substr(dt$DATE, 1, 3)
-  years_ad <- as.numeric(years) + 1911
-  dt$DATE <- paste0(years_ad, "-", substr(dt$DATE, 4, 5), 
-                        "-", substr(dt$DATE, 6, 7))
-  dt$DATE <- as.Date(dt$DATE, format = "%Y-%m-%d")
+  if (!grepl("^\\d{4}\\d{2}\\d{2}$", dt$DATE[1])) {
+    years <- substr(dt$DATE, 1, 3)
+    years_ad <- as.numeric(years) + 1911
+    dt$DATE <- paste0(years_ad, "-", substr(dt$DATE, 4, 5), 
+                      "-", substr(dt$DATE, 6, 7))
+    dt$DATE <- as.Date(dt$DATE, format = "%Y-%m-%d")
+  }else {
+    dt$DATE <- as.Date(dt$DATE, format = "%Y%m%d")
+  }
   
   # Drop Duplicate
-  dt <- unique(dt, by = c(Standard_ID_cols[1], "DATE"))
+  dt <- unique(dt, by = c(group_id, "DATE"))
   
   # Count Data
   calculate_count <- function(sub_dt) {
@@ -46,7 +51,7 @@ get_valid_data <- function(dt, Standard_ID_cols, k){
     return(counts)
   }
   
-  dt[, counts := calculate_count(.SD), by = CHR_NO]
+  dt[, counts := calculate_count(.SD), by = group_id]
   dt <- dt[counts >= k]
   
   return(as.data.table(dt))
