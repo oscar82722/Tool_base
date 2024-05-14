@@ -1,9 +1,7 @@
-library(here)
-# Set the working directory to the location of the test script
-here::set_here()
-source("../tool_function/fetch_function.R")
+new_dir <- "C:/Users/USER/Downloads/function_tool/"
+setwd(new_dir)
+source("tool_function/fetch_function.R")
 library(testthat)
-
 
 # unit_test
 #===============================================================================
