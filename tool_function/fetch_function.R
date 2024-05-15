@@ -69,16 +69,13 @@ get_valid_data <- function(dt, group_id_col, date_col, k){
   # Drop Duplicate
   dt <- dt[!duplicated(dt)]
   
-  # Standardized date format
-  # dt <- standardized_date(dt, "DATE")
-  
-  # sort values
+  # Sort values by (ID, DATE)
   dt <- dt[order(ID, DATE)]
   
-  # new col
+  # create shift col
   dt[, k_times_data := shift(DATE, n = -(k-1)), by = ID]
   
-  # cal diff => filter < 365 days => remove diff
+  # Clean data
   dt[, diff := k_times_data - DATE]
   dt <- dt[diff <= 365]
   dt <- dt[, .(ID, DATE)]

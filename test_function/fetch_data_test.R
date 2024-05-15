@@ -36,8 +36,7 @@ test_that("fetch_data() function test", {
 #===============================================================================
 # get_valid_data: unit_test
 # test_item: 
-# 1.function work，2.duplicate date，3.diff group id，4.diff date type
-# 5.different k=-1,0,1,3
+# 1.duplicate date，2.diff group id col，3.different k = 2,3
 test_that("get_valid_data() function test", {
   
   # example1
@@ -45,7 +44,6 @@ test_that("get_valid_data() function test", {
     ID_TEST = c("ID1", "ID2", "ID2", "ID1", "ID2", "ID1"),
     IPD_DATE = as.Date(c("2016-01-01", "2016-02-02", "2016-03-03", "2016-04-04",
                          "2016-05-05", "2016-04-04")))
-
   k <- 2
   group_id_col<- "ID_TEST"
   date_col <- "IPD_DATE"
@@ -67,7 +65,6 @@ test_that("get_valid_data() function test", {
                          "2016-05-05","2013-04-04")))
   k2 <- 3
   valid_data2 <- get_valid_data(dt2, "CHR_NO", "OPD_DATE", k2)
-  
   
   # create answer
   answer2 <- data.table(
