@@ -2,7 +2,6 @@ library(assertthat)
 library(dplyr)
 library(data.table)
 
-
 # function_name: standardized date format
 standardized_date <- function(dt, date_col){
   # Transfer date type 
@@ -18,7 +17,6 @@ standardized_date <- function(dt, date_col){
   
   return(dt)
 }
-
 
 #===============================================================================
 # function_name: get_valid_data
@@ -61,14 +59,3 @@ get_valid_data <- function(dt, group_id_col, date_col, k){
   
   return(dt)
 }
-
-# example2
-#dt <- data.table(
-#  CHR_NO = c("ID1", "ID1", "ID1", "ID1", "ID2", "ID1"),
-#  OPD_DATE = c("1050101", "1050202", "1050303", "1050404", "1050505", 
-#               "1050404"))
-
-#k <- 3
-
-#group_id_col = "CHR_NO" 
-#date_col = "OPD_DATE"
