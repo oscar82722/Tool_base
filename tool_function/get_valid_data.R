@@ -3,56 +3,72 @@ library(dplyr)
 library(data.table)
 
 
+# function_name: standardized date format
+standardized_date <- function(dt, date_col){
+  # Transfer date type 
+  if (!grepl("^\\d{4}\\d{2}\\d{2}$", dt[[date_col]][1])) {
+    years <- substr(dt[[date_col]], 1, 3)
+    years_ad <- as.numeric(years) + 1911
+    dt[[date_col]] <- paste0(years_ad, "-", substr(dt[[date_col]], 4, 5), 
+                      "-", substr(dt[[date_col]], 6, 7))
+    dt[[date_col]] <- as.Date(dt[[date_col]], format = "%Y-%m-%d")
+  }else {
+    dt[[date_col]] <- as.Date(dt[[date_col]], format = "%Y%m%d")
+  }
+  
+  return(dt)
+}
+
+
 #===============================================================================
 # function_name: get_valid_data
 # parameters:
 #   - dt(data_table): 門診資料
-#   - standard_ID_cols(vector): C(group by_ID, DATE)
+#   - group_id_col: 病人ID欄位
+#   - date_col: 日期欄位
 #   - k(numeric): 一年內看診次數
 # return:
 #   - data_table 一年內超過k筆數據的資料
 
-get_valid_data <- function(dt, Standard_ID_cols, k){
+get_valid_data <- function(dt, group_id_col, date_col, k){
   
   # Data type restrictions
   assert_that(is.data.table(dt), msg="Error: 'dt' must be a data.table")
-  assert_that(is.vector(Standard_ID_cols), 
-              msg="Error: 'target_ID_cols' must be a list.")
+  assert_that(is.character(group_id_col), 
+              msg="Error: 'group_id_col' must be a character")
+  assert_that(is.character(date_col), 
+              msg="Error: 'date_col' must be a character")
   assert_that(is.numeric(k), msg="Error: 'k' must be a numeric.")
   
-  group_id <- Standard_ID_cols[1]
-  # ADD "DATE" col
-  date_cols_index <- grep("date", names(dt)[names(dt) %in% Standard_ID_cols], 
-                          ignore.case = TRUE)
-  std_id <- names(dt)[date_cols_index]
-  dt[, DATE := .SD[[std_id]]]
-  
-  # Transfer date type
-  if (!grepl("^\\d{4}\\d{2}\\d{2}$", dt$DATE[1])) {
-    years <- substr(dt$DATE, 1, 3)
-    years_ad <- as.numeric(years) + 1911
-    dt$DATE <- paste0(years_ad, "-", substr(dt$DATE, 4, 5), 
-                      "-", substr(dt$DATE, 6, 7))
-    dt$DATE <- as.Date(dt$DATE, format = "%Y-%m-%d")
-  }else {
-    dt$DATE <- as.Date(dt$DATE, format = "%Y%m%d")
-  }
+  # rename data col
+  dt <- setnames(dt, date_col, "DATE")
   
   # Drop Duplicate
-  dt <- unique(dt, by = c(group_id, "DATE"))
+  dt <- unique(dt, by = c(group_id_col, "DATE"))
   
-  # Count Data
-  calculate_count <- function(sub_dt) {
-    start_intervals <- sub_dt[["DATE"]]
-    end_intervals <- start_intervals + 365
-    counts <- sapply(start_intervals, function(start_interval) {
-      sum(sub_dt$DATE >= start_interval & sub_dt$DATE <= (start_interval + 365))
-    })
-    return(counts)
-  }
+  # Standardized date format
+  dt <- standardized_date(dt, "DATE")
   
-  dt[, counts := calculate_count(.SD), by = group_id]
-  dt <- dt[counts >= k]
+  # sort date
+  dt <- setorderv(dt, c(group_id_col, "DATE"))
+  dt_copy <- copy(dt) #???
+  dt <- dt_copy[, k_times_data := shift(DATE, n = -(k-1)), by = group_id_col] 
   
-  return(as.data.table(dt))
+  # cal diff => filter < 365 days => remove diff
+  dt[, diff := k_times_data - DATE]
+  dt <- dt[diff <= 365]
+  dt[, diff := NULL]
+  
+  return(dt)
 }
+
+# example2
+#dt <- data.table(
+#  CHR_NO = c("ID1", "ID1", "ID1", "ID1", "ID2", "ID1"),
+#  OPD_DATE = c("1050101", "1050202", "1050303", "1050404", "1050505", 
+#               "1050404"))
+
+#k <- 3
+
+#group_id_col = "CHR_NO" 
+#date_col = "OPD_DATE"

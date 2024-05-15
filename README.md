@@ -13,12 +13,8 @@ The project is currently under development, but you can organize your code accor
 ToolBase/
 │
 ├── tool_function/
-|   ├── fetch_data.R
-|   ├── get_valid_data.R
-|   └── other_function.R
-│
+|   └── function_sets.R
+|
 └── test_function/
-├── fetch_data_test.R
-├── get_valid_data_test.R
-└── other_test_files.R
+    └── function_sets_test.R
 ```
