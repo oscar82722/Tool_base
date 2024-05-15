@@ -1,4 +1,4 @@
-library(reshape2)
+library(reshape2) # 這啥
 library(assertthat)
 library(data.table)
 
@@ -8,10 +8,11 @@ library(data.table)
 # function2: get_valid_data()
 
 #===============================================================================
+# 這不應該是放在 function 裡 ? 這樣後續呼叫時看不到這裡
 # function_name: fetch_data
 # parameters:
 #   - data(data_table): 包含需要處理的資料
-#   - target_ID(vector): 要標準化的目標 ID 列表 
+#   - target_ID_cols(vector): 要標準化的目標 ID 列表 
 #   - disease_ID(vector): 疾病 ID 所在的欄位 (疾病col1, 疾病col2, 疾病col2)
 #   - disease_codes(vector): 要配對的疾病碼 
 # return:
@@ -36,9 +37,11 @@ fetch_data <- function(dt, target_ID_cols, disease_ID_cols, disease_codes){
   melted_data[, value := as.character(value)]
   filtered_data <- melted_data[grepl(paste0("^", paste(disease_codes, collapse="|^")), 
                                      value)]
-  filtered_data <- filtered_data[,.(get(target_ID_cols[1]),get(target_ID_cols[2]))]
   
-  setnames(filtered_data, target_ID_cols)
+  #filtered_data <- filtered_data[,.(get(target_ID_cols[1]),get(target_ID_cols[2]))] 改成下面
+  filtered_data <- filtered_data[,target_ID_cols, with=F]
+  
+  setnames(filtered_data, target_ID_cols) #為啥要再重新命名?
   
   return(filtered_data)
 }
