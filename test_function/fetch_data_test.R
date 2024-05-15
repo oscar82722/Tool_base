@@ -5,9 +5,6 @@ library(testthat)
 
 #===============================================================================
 # fetch_data: unit_test
-# test_item: 
-# 1.function work，2.duplicate date，3.diff group id，4.diff date type
-# 5.different k=-1,0,1,3
 
 test_that("fetch_data() function test", {
   
