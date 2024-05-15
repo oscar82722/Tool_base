@@ -5,10 +5,9 @@ library(testthat)
 
 #===============================================================================
 # fetch_data: unit_test
-
 test_that("fetch_data() function test", {
   
-  # 創建一個測試用的假資料表
+  # Create test data 
   dt <- data.table(
     CHR_NO = c("ID1", "ID2", "ID3"),
     OPD_DATE = c("2024-01-01", "2024-01-02", "2024-01-03"),
@@ -16,26 +15,23 @@ test_that("fetch_data() function test", {
     ICD9_CODE2 = c("585", "586", "587")
   )
   
-  # 定義目標 ID 列表、疾病 ID 列表和疾病碼
+  # Define target_ID_cols, disease_ID_cols, disease_codes
   target_ID_cols <- c("CHR_NO", "OPD_DATE")
   disease_ID_cols <- c("ICD9_CODE1", "ICD9_CODE2")
   disease_codes <- c("434.01", "585")
   
-  # 測試 fetch_data() 函數是否能正常運行並返回正確的結果
+  # Test fetch_data() 
   filtered_data <- fetch_data(dt, target_ID_cols, disease_ID_cols, disease_codes)
   
   answer <- data.table(
     CHR_NO = c("ID2", "ID1"),
-    OPD_DATE = c("2024-01-02", "2024-01-01"),
-    variable = factor(c("ICD9_CODE1", "ICD9_CODE2")),
-    value = c("434.01", "585")
+    OPD_DATE = c("2024-01-02", "2024-01-01")
   )
   
-  # 比較兩個data table 是否一致
+  # Compare result
   expect_equal(filtered_data, answer)
   
 })
-
 
 #===============================================================================
 # get_valid_data: unit_test
@@ -47,18 +43,19 @@ test_that("get_valid_data() function test", {
   # example1
   dt <- data.table(
     ID_TEST = c("ID1", "ID2", "ID2", "ID1", "ID2", "ID1"),
-    IPD_DATE = c("20160101", "20160202", "20160303", "20160404", "20160505", 
-                 "20160404"))
-  
+    IPD_DATE = as.Date(c("2016-01-01", "2016-02-02", "2016-03-03", "2016-04-04",
+                         "2016-05-05", "2016-04-04")))
+
   k <- 2
-  valid_data <- get_valid_data(dt, "ID_TEST", "IPD_DATE", k)
+  group_id_col<- "ID_TEST"
+  date_col <- "IPD_DATE"
+  valid_data <- get_valid_data(dt, group_id_col, date_col, k)
   
   # create answer
   answer <- data.table(
-    ID_TEST = c("ID1", "ID2", "ID2"),
-    DATE = as.Date(c("2016-01-01", "2016-02-02", "2016-03-03")),
-    k_times_data = as.Date(c("2016-04-04", "2016-03-03", "2016-05-05"))
-  )
+    ID = c("ID1", "ID2", "ID2"),
+    DATE = as.Date(c("2016-01-01", "2016-02-02", "2016-03-03"))
+    )
   
   # test same result 
   expect_equal(valid_data, answer)
@@ -66,19 +63,16 @@ test_that("get_valid_data() function test", {
   # example2
   dt2 <- data.table(
     CHR_NO = c("ID1", "ID1", "ID1", "ID1", "ID2", "ID1"),
-    OPD_DATE = c("1050101", "1050202", "1050303", "1050404", "1050505", 
-                 "1020404"))
-  
+    OPD_DATE = as.Date(c("2016-01-01", "2016-02-02", "2016-03-03", "2016-04-04", 
+                         "2016-05-05","2013-04-04")))
   k2 <- 3
   valid_data2 <- get_valid_data(dt2, "CHR_NO", "OPD_DATE", k2)
   
   
   # create answer
   answer2 <- data.table(
-    CHR_NO = c("ID1", "ID1"),
-    DATE = as.Date(c("2016-01-01", "2016-02-02")),
-    k_times_data = as.Date(c("2016-03-03", "2016-04-04"))
-  )
+    ID = c("ID1", "ID1"),
+    DATE = as.Date(c("2016-01-01", "2016-02-02")))
   
   # test same result 
   expect_equal(valid_data2, answer2)

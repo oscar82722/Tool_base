@@ -1,7 +1,11 @@
 library(reshape2)
 library(assertthat)
 library(data.table)
-library(dplyr)
+
+#=======================================
+# fetch function sets
+# function1: fetch_data()
+# function2: get_valid_data()
 
 #===============================================================================
 # function_name: fetch_data
@@ -32,23 +36,11 @@ fetch_data <- function(dt, target_ID_cols, disease_ID_cols, disease_codes){
   melted_data[, value := as.character(value)]
   filtered_data <- melted_data[grepl(paste0("^", paste(disease_codes, collapse="|^")), 
                                      value)]
+  filtered_data <- filtered_data[,.(get(target_ID_cols[1]),get(target_ID_cols[2]))]
+  
+  setnames(filtered_data, target_ID_cols)
+  
   return(filtered_data)
-}
-
-#===============================================================================
-# function_name: standardized date format
-standardized_date <- function(dt, date_col){
-  # Transfer date type 
-  if (!grepl("^\\d{4}\\d{2}\\d{2}$", dt[[date_col]][1])) {
-    years <- substr(dt[[date_col]], 1, 3)
-    years_ad <- as.numeric(years) + 1911
-    dt[[date_col]] <- paste0(years_ad, "-", substr(dt[[date_col]], 4, 5), 
-                             "-", substr(dt[[date_col]], 6, 7))
-    dt[[date_col]] <- as.Date(dt[[date_col]], format = "%Y-%m-%d")
-  }else {
-    dt[[date_col]] <- as.Date(dt[[date_col]], format = "%Y%m%d")
-  }
-  return(dt)
 }
 
 #===============================================================================
@@ -71,25 +63,25 @@ get_valid_data <- function(dt, group_id_col, date_col, k){
               msg="Error: 'date_col' must be a character")
   assert_that(is.numeric(k), msg="Error: 'k' must be a numeric.")
   
-  # rename data col
-  dt <- setnames(dt, date_col, "DATE")
-  
+  # Rename data col
+  dt <- dt[, .(ID = get(group_id_col), 
+               DATE = get(date_col))]
   # Drop Duplicate
-  dt <- unique(dt, by = c(group_id_col, "DATE"))
+  dt <- dt[!duplicated(dt)]
   
   # Standardized date format
-  dt <- standardized_date(dt, "DATE")
+  # dt <- standardized_date(dt, "DATE")
   
-  # sort date
-  dt <- setorderv(dt, c(group_id_col, "DATE"))
-  dt_copy <- copy(dt) #???
-  dt <- dt_copy[, k_times_data := shift(DATE, n = -(k-1)), by = group_id_col] 
+  # sort values
+  dt <- dt[order(ID, DATE)]
+  
+  # new col
+  dt[, k_times_data := shift(DATE, n = -(k-1)), by = ID]
   
   # cal diff => filter < 365 days => remove diff
   dt[, diff := k_times_data - DATE]
   dt <- dt[diff <= 365]
-  dt[, diff := NULL]
+  dt <- dt[, .(ID, DATE)]
   
   return(dt)
 }
-
